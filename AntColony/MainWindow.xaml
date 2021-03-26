@@ -15,12 +15,29 @@
         </Grid.ColumnDefinitions>
 
         <WindowsFormsHost Grid.Column="0">
-            <opentk:GLControl x:Name="glControl" Load="OnLoad" Paint="OnRenderFrame" />
+            <opentk:GLControl x:Name="glControl" Load="OnLoad" Paint="OnRenderFrame" MouseDown="glControl_MouseDown" />
         </WindowsFormsHost>
 
         <GridSplitter Grid.Column="1" ShowsPreview="False" Width="3"
             HorizontalAlignment="Center" VerticalAlignment="Stretch" />
-        <Button Grid.Column="2" Content="Новый цвет"  Click="Button_Click" />
+        <Grid x:Name="LayoutRoot" Grid.Column="3">
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="textBlock" Grid.Column="0" Grid.ColumnSpan="4" />
+            <Button Grid.Column="0" Grid.Row="1" Content="Новый цвет"  Click="Button_Click" />
+        </Grid>
+
 
     </Grid>
 </Window>
