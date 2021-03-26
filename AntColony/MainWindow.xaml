@@ -1,0 +1,26 @@
+﻿<Window x:Class="AntColony.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AntColony"
+        xmlns:opentk="clr-namespace:OpenTK;assembly=OpenTK.GLControl"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <WindowsFormsHost Grid.Column="0">
+            <opentk:GLControl x:Name="glControl" Load="OnLoad" Paint="OnRenderFrame" />
+        </WindowsFormsHost>
+
+        <GridSplitter Grid.Column="1" ShowsPreview="False" Width="3"
+            HorizontalAlignment="Center" VerticalAlignment="Stretch" />
+        <Button Grid.Column="2" Content="Новый цвет"  Click="Button_Click" />
+
+    </Grid>
+</Window>
