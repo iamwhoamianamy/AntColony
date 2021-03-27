@@ -3,12 +3,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using OpenTK;
+using OpenTK.Graphics;
+using OpenTK.Graphics.OpenGL;
+
 namespace AntColony
 {
    class QTree
    {
       Vector2 loc;
-      Vector2 dimension;
+      Vector2 dim;
       Vector3 colour;
 
       QTree topleft;
@@ -16,62 +20,48 @@ namespace AntColony
       QTree botleft;
       QTree botright;
 
-      bool divided;
-
+      bool isDivided;
       public int capacity;
 
-      float width = 8.888888f;
-      float height = 5;
-
       List<Point> points;
-      public QTree(int _capacity)
-      {
-         loc = Vector2.Zero;
-         dimension = new Vector2(width * 2, height * 2);
-
-         points = new List<Point>();
-
-         divided = false;
-
-         capacity = _capacity;
-
-         colour = new Vector3(0, 255, 0);
-      }
       public QTree(Vector2 _loc, Vector2 _dimension, int _capacity)
       {
          loc = new Vector2(_loc.X, _loc.Y);
-         dimension = new Vector2(_dimension.X, _dimension.Y);
+         dim = new Vector2(_dimension.X, _dimension.Y);
 
          points = new List<Point>();
 
-         divided = false;
+         isDivided = false;
 
          capacity = _capacity;
 
-         colour = new Vector3(0, 255, 0);
+         colour = new Vector3(0, 0.9f, 0);
       }
       void Subdivide()
       {
-         if (!divided)
+         if (!isDivided)
          {
-            topleft =  new QTree(new Vector2(loc.X - dimension.X / 4, loc.Y - dimension.Y / 4), new Vector2(dimension.X / 2, dimension.Y / 2), capacity);
-            topright = new QTree(new Vector2(loc.X + dimension.X / 4, loc.Y - dimension.Y / 4), new Vector2(dimension.X / 2, dimension.Y / 2), capacity);
-            botleft =  new QTree(new Vector2(loc.X - dimension.X / 4, loc.Y + dimension.Y / 4), new Vector2(dimension.X / 2, dimension.Y / 2), capacity);
-            botright = new QTree(new Vector2(loc.X + dimension.X / 4, loc.Y + dimension.Y / 4), new Vector2(dimension.X / 2, dimension.Y / 2), capacity);
+            topleft =  new QTree(new Vector2(loc.X - dim.X / 4, loc.Y - dim.Y / 4), new Vector2(dim.X / 2, dim.Y / 2), capacity);
+            topright = new QTree(new Vector2(loc.X + dim.X / 4, loc.Y - dim.Y / 4), new Vector2(dim.X / 2, dim.Y / 2), capacity);
+            botleft =  new QTree(new Vector2(loc.X - dim.X / 4, loc.Y + dim.Y / 4), new Vector2(dim.X / 2, dim.Y / 2), capacity);
+            botright = new QTree(new Vector2(loc.X + dim.X / 4, loc.Y + dim.Y / 4), new Vector2(dim.X / 2, dim.Y / 2), capacity);
 
-            divided = true;
+            isDivided = true;
          }
       }
-      public void Render()
+      public void Draw()
       {
-        
+         GL.Color3(colour);
+         GL.LineWidth(5);
 
-         if (divided)
+         Misc.DrawRect(loc, dim);
+
+         if (isDivided)
          {
-            topleft.Render();
-            topright.Render();
-            botleft.Render();
-            botright.Render();
+            topleft.Draw();
+            topright.Draw();
+            botleft.Draw();
+            botright.Draw();
          }
       }
       public void Fill(List<Point> points)
@@ -81,7 +71,7 @@ namespace AntColony
       }
       void Insert(Point point)
       {
-         if (!Contains(point.loc, loc, dimension))
+         if (!Contains(point.loc, loc, dim))
             return;
          if (points.Count() < capacity)
             points.Add(point);
@@ -103,8 +93,8 @@ namespace AntColony
       }
       bool IntersectsWithRect(float x, float y, float w)
       {
-         return (x - w / 2 <= loc.X + dimension.X / 2 && x + w / 2 >= loc.X - dimension.X / 2) &&
-                (y - w / 2 <= loc.Y + dimension.Y / 2 && y + w / 2 >= loc.Y - dimension.Y / 2);
+         return (x - w / 2 <= loc.X + dim.X / 2 && x + w / 2 >= loc.X - dim.X / 2) &&
+                (y - w / 2 <= loc.Y + dim.Y / 2 && y + w / 2 >= loc.Y - dim.Y / 2);
       }
       public void Quarry(Point centralPoint, float widthOfSearch, List<Neighbour> found)
       {
@@ -112,7 +102,7 @@ namespace AntColony
             return;
          else
          {
-            colour = new Vector3(255, 255, 0);
+            colour = new Vector3(1, 1, 0);
             foreach (Point other in points)
                if (centralPoint != other && Contains(other.loc, new Vector2(centralPoint.loc.X, centralPoint.loc.Y), new Vector2(widthOfSearch, widthOfSearch)))
                {
@@ -122,7 +112,7 @@ namespace AntColony
                   //found.add(new Neighbour(other, xLen * xLen + yLen * yLen));
                }
          }
-         if (divided)
+         if (isDivided)
          {
             topleft.Quarry(centralPoint, widthOfSearch, found);
             topright.Quarry(centralPoint, widthOfSearch, found);

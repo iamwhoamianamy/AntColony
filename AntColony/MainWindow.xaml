@@ -9,13 +9,13 @@
         Title="MainWindow" Height="450" Width="800">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="8*" />
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
         <WindowsFormsHost Grid.Column="0">
-            <opentk:GLControl x:Name="glControl" Load="OnLoad" Paint="OnRenderFrame" MouseDown="glControl_MouseDown" />
+            <opentk:GLControl x:Name="glControl" Load="glControl_OnLoad" Paint="glControl_OnRenderFrame" MouseDown="glControl_MouseDown" Resize="glControl_Resize" />
         </WindowsFormsHost>
 
         <GridSplitter Grid.Column="1" ShowsPreview="False" Width="3"
@@ -29,8 +29,6 @@
                 <RowDefinition />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition />
-                <ColumnDefinition />
                 <ColumnDefinition />
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
