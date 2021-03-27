@@ -52,7 +52,6 @@ namespace AntColony
       public void Draw()
       {
          GL.Color3(colour);
-         GL.LineWidth(5);
 
          Misc.DrawRect(loc, dim);
 

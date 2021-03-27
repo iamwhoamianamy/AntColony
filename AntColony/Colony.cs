@@ -40,12 +40,10 @@ namespace AntColony
       {
          GL.PointSize(10);
          GL.Begin(PrimitiveType.Points);
+         GL.Color3(1f, 1f, 1f);
 
          foreach (var ant in ants)
-         {
-            GL.Color3(0.9, 0.9, 0.9);
             GL.Vertex2(ant.loc);
-         }
 
          GL.End();
       }

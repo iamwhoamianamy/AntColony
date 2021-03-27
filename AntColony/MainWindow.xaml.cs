@@ -30,6 +30,7 @@ namespace AntColony
       private Colony colony;
 
       int w, h;
+      float mouseX, mouseY;
 
       public MainWindow()
       {
@@ -56,27 +57,14 @@ namespace AntColony
          // Iplement physics here
 
          colony.qTree = new QTree(new Vector2(w / 2, h / 2), new Vector2(w, h), 1);
-
-         //List<Point> toFillQTree = new List<Point>();
-
-         //foreach (Ant ant in colony.ants)
-         //{
-         //   toFillQTree.Add(ant);
-         //}
-
-         //colony.qTree.Fill(toFillQTree);
-
          colony.qTree.Fill(colony.ants.ToList<Point>());
+
          List<Neighbour> neibs = new List<Neighbour>();
+         colony.qTree.Quarry(new Point(new Vector2(mouseX, mouseY)), 100, neibs);
 
-         //Vector2 mousePos = new Vector2((float)Mouse.GetPosition(LayoutRoot).X + w,
-         //                               (float)Mouse.GetPosition(LayoutRoot).Y);
-
-         //colony.qTree.Quarry(new Point(mousePos), 100, neibs);
-
-         //Misc.DrawRect(mousePos, new Vector2(100, 100));
-
-         
+         GL.LineWidth(5);
+         GL.Color3(1f, 0, 0);
+         Misc.DrawRect(mouseX, mouseY, 100, 100);
 
          colony.BounceFromBorders(w, h);
          colony.Update();
@@ -85,8 +73,18 @@ namespace AntColony
          // Draw objects here
          GL.ClearColor(backgroundColor);
          colony.Draw();
+         GL.LineWidth(3);
          colony.qTree.Draw();
 
+         GL.PointSize(10);
+         GL.Color3(1f, 1f, 0);
+
+         GL.Begin(PrimitiveType.Points);
+
+         foreach (var n in neibs)
+            GL.Vertex2(n.point.loc);
+
+         GL.End();
 
          // Dont touch
          glControl.SwapBuffers();
@@ -98,7 +96,7 @@ namespace AntColony
          Vector2 clickCoords = new Vector2(e.X, e.Y);
          colony.ants.Add(new Ant(10, clickCoords, new Vector2((float)r.NextDouble(), (float)r.NextDouble())));
 
-         textBlock.Text = clickCoords.X.ToString() + " " + clickCoords.Y.ToString();
+         textBlock1.Text = clickCoords.X.ToString() + " " + clickCoords.Y.ToString();
       }
 
       private void glControl_Resize(object sender, EventArgs e)
@@ -113,6 +111,14 @@ namespace AntColony
          GL.Ortho(0, w, h, 0, -1.0, 1.0);
          GL.MatrixMode(MatrixMode.Modelview);
          GL.LoadIdentity();
+      }
+
+      private void glControl_MouseMove(object sender, System.Windows.Forms.MouseEventArgs e)
+      {
+         mouseX = e.X;
+         mouseY = e.Y;
+
+         textBlock2.Text = mouseX + " " + mouseY;
       }
 
       private void Button_Click(object sender, RoutedEventArgs e)

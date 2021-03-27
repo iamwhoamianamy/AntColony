@@ -9,15 +9,21 @@
         Title="MainWindow" Height="450" Width="800">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="8*" />
+            <ColumnDefinition Width="4*" />
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
         <WindowsFormsHost Grid.Column="0">
-            <opentk:GLControl x:Name="glControl" Load="glControl_OnLoad" Paint="glControl_OnRenderFrame" MouseDown="glControl_MouseDown" Resize="glControl_Resize" />
+            <opentk:GLControl x:Name="glControl"
+                              Load="glControl_OnLoad"
+                              Paint="glControl_OnRenderFrame"
+                              MouseDown="glControl_MouseDown"
+                              Resize="glControl_Resize"
+                              MouseMove="glControl_MouseMove"
+                              />
         </WindowsFormsHost>
-
+        
         <GridSplitter Grid.Column="1" ShowsPreview="False" Width="3"
             HorizontalAlignment="Center" VerticalAlignment="Stretch" />
         <Grid x:Name="LayoutRoot" Grid.Column="3">
@@ -32,7 +38,8 @@
                 <ColumnDefinition />
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
-            <TextBlock x:Name="textBlock" Grid.Column="0" Grid.ColumnSpan="4" />
+            <TextBlock x:Name="textBlock1" Grid.Column="0" Grid.ColumnSpan="2" />
+            <TextBlock x:Name="textBlock2" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" />
             <Button Grid.Column="0" Grid.Row="1" Content="Новый цвет"  Click="Button_Click" />
         </Grid>
 
