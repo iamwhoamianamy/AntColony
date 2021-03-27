@@ -68,12 +68,6 @@ namespace AntColony
                vel.Y *= -1;
             }
          }
-
-      }
-
-      public void Update()
-      {
-         loc += vel;
       }
    }
 }

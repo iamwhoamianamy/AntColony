@@ -69,6 +69,7 @@
     <Compile Include="Colony.cs" />
     <Compile Include="Misc.cs" />
     <Compile Include="Neighbour.cs" />
+    <Compile Include="Pheromone.cs" />
     <Compile Include="Point.cs" />
     <Compile Include="QTree.cs" />
     <Page Include="MainWindow.xaml">
