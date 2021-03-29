@@ -30,7 +30,6 @@ namespace AntColony
       private Color4 backgroundColor;
 
       private Colony colony;
-      private QTree pheromonesQTree;
       private QTree foodQTree;
       private List<Point> food;
 
@@ -88,9 +87,11 @@ namespace AntColony
          if(time % 10 == 0)
             colony.UpdatePheromones();
 
-         pheromonesQTree = new QTree(new Vector2(w / 2, h / 2), new Vector2(w, h), 1);
-         foreach (var ant in colony.ants)
-            pheromonesQTree.Fill(ant.pheromones.ToList<Point>());
+         colony.pathPheromonesQTree = new QTree(new Vector2(w / 2, h / 2), new Vector2(w, h), 1);
+         colony.pathPheromonesQTree.Fill(colony.pathPheromones.ToList<Point>());
+
+         colony.foodPheromonesQTree = new QTree(new Vector2(w / 2, h / 2), new Vector2(w, h), 1);
+         colony.foodPheromonesQTree.Fill(colony.foodPheromones.ToList<Point>());
 
          foodQTree = new QTree(new Vector2(w / 2, h / 2), new Vector2(w, h), 1);
          foodQTree.Fill(food);
@@ -113,7 +114,9 @@ namespace AntColony
          //      textBlock4.Text = "Пока не нашли";
          //}
 
-         colony.FollowPheromones(pheromonesQTree);
+         colony.FollowPheromones();
+         colony.SeekFood(foodQTree);
+         colony.SeekHome(new Vector2(w / 2, h / 2));
 
          colony.AvoidBorders(30, w, h);
          colony.BounceFromBorders(w, h);
@@ -234,6 +237,11 @@ namespace AntColony
          {
             colony.ants.Add(new Ant(15, new Vector2(w / 2, h / 2), Misc.VecFromAng(r.NextDouble(), 1.1f)));
          }
+      }
+
+      private void Button3_Click(object sender, RoutedEventArgs e)
+      {
+         food = new List<Point>();
       }
    }
 }

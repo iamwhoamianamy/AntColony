@@ -13,13 +13,20 @@ namespace AntColony
    class Colony
    {
       public List<Ant> ants;
-      public QTree qTree;
+      public QTree antsQTree;
+      public QTree pathPheromonesQTree;
+      public QTree foodPheromonesQTree;
+
+      public List<Pheromone> pathPheromones;
+      public List<Pheromone> foodPheromones;
 
       public float wanderStrength = 0f;
 
       public Colony()
       {
          ants = new List<Ant>();
+         pathPheromones = new List<Pheromone>();
+         foodPheromones = new List<Pheromone>();
       }
 
       public void BounceFromBorders(float w, float h)
@@ -40,40 +47,121 @@ namespace AntColony
 
       public void UpdatePheromones()
       {
+         List<Pheromone> toRemove = new List<Pheromone>();
+
+         foreach (var p in pathPheromones)
+         {
+            if (p.durationLeft == 0)
+               toRemove.Add(p);
+            else
+               p.durationLeft--;
+         }
+
+         pathPheromones.RemoveAll(p => toRemove.Contains(p));
+
+         toRemove = new List<Pheromone>();
+
+         foreach (var p in foodPheromones)
+         {
+            if (p.durationLeft == 0)
+               toRemove.Add(p);
+            else
+               p.durationLeft--;
+         }
+
+         foodPheromones.RemoveAll(p => toRemove.Contains(p));
+
          foreach (var ant in ants)
          {
-            ant.UpdatePheromones();
+            if(ant.isCarryingFood)
+               foodPheromones.Add(new Pheromone(3, ant.loc, 50));
+            else
+               pathPheromones.Add(new Pheromone(3, ant.loc, 50));
          }
       }
 
       public void DrawPheromones()
       {
+         GL.PointSize(4);
+         GL.Enable(EnableCap.PointSmooth);
+
+         GL.Begin(PrimitiveType.Points);
+         foreach (var p in pathPheromones)
+         {
+            float value = (float)(p.durationLeft) / p.duration;
+            GL.Color3(0f, 0f, value);
+            GL.Vertex2(p.loc);
+         }
+         GL.End();
+
+         GL.Begin(PrimitiveType.Points);
+         foreach (var p in foodPheromones)
+         {
+            float value = (float)(p.durationLeft) / p.duration;
+            GL.Color3(value, 0f, 0f);
+            GL.Vertex2(p.loc);
+         }
+         GL.End();
+
+         GL.Disable(EnableCap.PointSmooth);
+      }
+      public void SeekFood(QTree foodQTree)
+      {
          foreach (var ant in ants)
          {
-            GL.PointSize(4);
-            GL.Enable(EnableCap.PointSmooth);
-
-            GL.Begin(PrimitiveType.Points);
-
-            foreach (var p in ant.pheromones)
+            if (!ant.isCarryingFood)
             {
-               float value = (float)(p.durationLeft) / p.duration;
+               List<Neighbour> neibs = new List<Neighbour>();
+               foodQTree.Quarry(new Point(ant.loc + ant.vel.Normalized() * ant.size * 1.5f), ant.size * 3.0f, neibs);
+               
+               if (neibs.Count != 0)
+               {
+                  Neighbour minNeib = neibs[0];
+                  float minDist = Vector2.Distance(neibs[0].point.loc, ant.loc);
 
-               if (p.type == PhTypes.Path)
-                  GL.Color3(0f, 0f, value);
-               else
-                  GL.Color3(value, 0f, 0f);
+                  foreach (var n in neibs)
+                  {
+                     float dist = Vector2.Distance(n.point.loc, ant.loc);
+                     if (dist < minDist)
+                     {
+                        minDist = dist;
+                        minNeib = n;
+                     }
+                  }
 
-               GL.Vertex2(p.loc);
+                  if (minDist < ant.size)
+                  {
+                     ant.isCarryingFood = true;
+                     ant.vel *= -1;
+                  }
+                  else
+                     ant.Steer(minNeib.point.loc);
+               }
             }
-
-            GL.End();
-
-            GL.Disable(EnableCap.PointSmooth);
          }
       }
 
-      public void FollowPheromones(QTree pheromonesQTree)
+      public void SeekHome(Vector2 home)
+      {
+         foreach (var ant in ants)
+         {
+            if (ant.isCarryingFood)
+            {
+               float dist = Vector2.Distance(home, ant.loc);
+               if (dist < ant.size * 3f)
+                  ant.Steer(home);
+
+               if(dist < ant.size)
+               {
+                  ant.isCarryingFood = false;
+                  ant.vel *= -1;
+               }
+            }
+            
+         }
+      }
+
+      public void FollowPheromones()
       {
          foreach (var ant in ants)
          {
@@ -81,11 +169,18 @@ namespace AntColony
             List<Neighbour> leftNeibs = new List<Neighbour>();
             List<Neighbour> rightNeibs = new List<Neighbour>();
 
-            pheromonesQTree.Quarry(new Point(ant.loc + ant.vel.Normalized() * ant.size * 1.75f),
-                             ant.size, centNeibs);
-            pheromonesQTree.Quarry(new Point(ant.loc + Misc.RotateVector(ant.vel.Normalized() * ant.size * 1.75f, 30f * Math.PI / 180f)),
+            QTree tTree;
+
+            if (ant.isCarryingFood)
+               tTree = pathPheromonesQTree;
+            else
+               tTree = foodPheromonesQTree;
+
+            tTree.Quarry(new Point(ant.loc + ant.vel.Normalized() * ant.size * 1.75f),
+                                ant.size, centNeibs);
+            tTree.Quarry(new Point(ant.loc + Misc.RotateVector(ant.vel.Normalized() * ant.size * 1.75f, 30f * Math.PI / 180f)),
                              ant.size, leftNeibs);
-            pheromonesQTree.Quarry(new Point(ant.loc + Misc.RotateVector(ant.vel.Normalized() * ant.size * 1.75f, -30f * Math.PI / 180f)),
+            tTree.Quarry(new Point(ant.loc + Misc.RotateVector(ant.vel.Normalized() * ant.size * 1.75f, -30f * Math.PI / 180f)),
                              ant.size, rightNeibs);
 
             if (leftNeibs.Count != 0 && leftNeibs.Count >= centNeibs.Count && leftNeibs.Count >= rightNeibs.Count)

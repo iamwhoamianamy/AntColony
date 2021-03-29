@@ -35,18 +35,20 @@
                 <RowDefinition />
                 <RowDefinition />
                 <RowDefinition />
+                <RowDefinition />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition />
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
             <TextBlock x:Name="textBlock1" Grid.Column="0" Grid.ColumnSpan="2" />
-            <TextBlock x:Name="textBlock2" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" />
-            <TextBlock x:Name="textBlock3" Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" />
-            <TextBlock x:Name="textBlock4" Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" />
+            <TextBlock x:Name="textBlock2" Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" />
+            <TextBlock x:Name="textBlock3" Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" />
+            <TextBlock x:Name="textBlock4" Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2" />
             <Button Grid.Column="0" Grid.Row="1" Content="Новый цвет"  Click="Button1_Click" />
             <Button Grid.Column="1" Grid.Row="1" Content="Спавн муравьев"  Click="Button2_Click" />
-            <TextBox x:Name="textBox" Grid.ColumnSpan="2"  Grid.Row="2" TextWrapping="Wrap" Text="TextBox" TextChanged="textBox_TextChanged"/>
+            <Button Grid.Column="2" Grid.Row="2" Content="Сброс еды"  Click="Button3_Click" />
+            <TextBox x:Name="textBox" Grid.ColumnSpan="2"  Grid.Row="3" TextWrapping="Wrap" Text="TextBox" TextChanged="textBox_TextChanged"/>
         </Grid>
 
 

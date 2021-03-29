@@ -17,48 +17,30 @@ namespace AntColony
 
       public Vector2 followTarget;
       public Vector2 avoidTarget;
-      public bool isFollowing = false;
-      public bool isAvoiding = false;
+      //public bool isFollowing = false;
+      //public bool isAvoiding = false;
 
-      public List<Pheromone> pheromones;
       public bool isCarryingFood = false;
 
       public Ant(float _size, Vector2 _loc, Vector2 _vel) :
          base(_size, _loc, _vel)
       {
          maxSpeed = _vel.Length;
-         pheromones = new List<Pheromone>();
          avoidTarget = new Vector2();
       }
 
       public void UpdateLocation()
       {
-         if (isAvoiding)
-            if(Vector2.Distance(avoidTarget, loc) > size * 2)
-               isAvoiding = false;
-            else
-               Avoid(avoidTarget);
+         //if (isAvoiding)
+         //   if(Vector2.Distance(avoidTarget, loc) > size * 2)
+         //      isAvoiding = false;
+         //   else
+         //      Avoid(avoidTarget);
 
          vel = (vel + acc).Normalized() * maxSpeed;
          loc += vel;
 
          acc = Vector2.Zero;
-      }
-
-      public void UpdatePheromones()
-      {
-         List<Pheromone> toRemove = new List<Pheromone>();
-
-         foreach (var p in pheromones)
-         {
-            if (p.durationLeft == 0)
-               toRemove.Add(p);
-            else
-               p.durationLeft--;
-         }
-
-         pheromones.RemoveAll(p => toRemove.Contains(p));
-         pheromones.Add(new Pheromone(3, loc, 50, isCarryingFood ? PhTypes.PathWithFood : PhTypes.Path));
       }
 
       public void Steer(Vector2 target)
@@ -89,22 +71,22 @@ namespace AntColony
       {
          if (loc.Y > h - perseption)
          {
-            Avoid(new Vector2(loc.X, h));
+            Avoid(new Vector2(loc.X, h + size));
          }
 
          if (loc.Y < perseption)
          {
-            Avoid(new Vector2(loc.X, 0));
+            Avoid(new Vector2(loc.X, -size));
          }
 
          if (loc.X > w - perseption)
          {
-            Avoid(new Vector2(w, loc.Y));
+            Avoid(new Vector2(w + size, loc.Y));
          }
 
          if (loc.X < perseption)
          {
-            Avoid(new Vector2(0, loc.Y));
+            Avoid(new Vector2(-size, loc.Y));
          }
 
          //Vector2 toAvoidCentr = loc + vel.Normalized() * perseption;

@@ -20,14 +20,14 @@ namespace AntColony
    {
       public int duration = 0;
       public int durationLeft = 0;
-      public PhTypes type = PhTypes.Path;
+      //public PhTypes type = PhTypes.Path;
       
-      public Pheromone(float _size, Vector2 _loc, int _duration, PhTypes _type) :
+      public Pheromone(float _size, Vector2 _loc, int _duration) :
         base(_size, _loc)
       {
          duration = _duration;
          durationLeft = _duration;
-         type = _type;
+         //type = _type;
       }
    }
 }
