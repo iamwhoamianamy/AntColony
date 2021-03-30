@@ -95,7 +95,7 @@ namespace AntColonyPure
          return (x - w / 2 <= loc.X + dim.X / 2 && x + w / 2 >= loc.X - dim.X / 2) &&
                 (y - w / 2 <= loc.Y + dim.Y / 2 && y + w / 2 >= loc.Y - dim.Y / 2);
       }
-      public void Quarry(Point centralPoint, float widthOfSearch, List<Neighbour> found)
+      public void Quarry(Point centralPoint, float widthOfSearch, List<Point> found)
       {
          if (!IntersectsWithRect(centralPoint.loc.X, centralPoint.loc.Y, widthOfSearch))
             return;
@@ -104,7 +104,7 @@ namespace AntColonyPure
             colour = new Vector3(1, 1, 0);
             foreach (Point other in points)
                if (centralPoint != other && Contains(other.loc, new Vector2(centralPoint.loc.X, centralPoint.loc.Y), new Vector2(widthOfSearch, widthOfSearch)))
-                  found.Add(new Neighbour(other, Vector2.Distance(centralPoint.loc, other.loc)));
+                     found.Add(other.Copy());
          }
          if (isDivided)
          {
@@ -115,7 +115,7 @@ namespace AntColonyPure
          }
       }
 
-      public void QuarryOne(Point centralPoint, float widthOfSearch, List<Neighbour> found)
+      public void QuarryOne(Point centralPoint, float widthOfSearch, List<Point> found)
       {
          if (!IntersectsWithRect(centralPoint.loc.X, centralPoint.loc.Y, widthOfSearch))
             return;
@@ -125,7 +125,7 @@ namespace AntColonyPure
             foreach (Point other in points)
                if (centralPoint != other && Contains(other.loc, new Vector2(centralPoint.loc.X, centralPoint.loc.Y), new Vector2(widthOfSearch, widthOfSearch)))
                {
-                  found.Add(new Neighbour(other, Vector2.Distance(centralPoint.loc, other.loc)));
+                  found.Add(other.Copy());
                   return;
                }
          }

@@ -47,7 +47,7 @@ namespace AntColonyPure
          Vector2 desiredDirection = (target - loc).Normalized();
          Vector2 desiredVelocity = desiredDirection * maxSpeed;
          Vector2 desiredSteeringForce = (desiredVelocity - vel) * _steerStrength;
-         acc += (desiredSteeringForce.Normalized() * _steerStrength) / 1;
+         acc += desiredSteeringForce.Normalized() * _steerStrength;
       }
 
       public void Avoid(Vector2 target)
@@ -55,7 +55,7 @@ namespace AntColonyPure
          Vector2 desiredDirection = (target - loc).Normalized();
          Vector2 desiredVelocity = desiredDirection * maxSpeed;
          Vector2 desiredSteeringForce = (desiredVelocity - vel) * avoidStrenght;
-         acc -= (desiredSteeringForce.Normalized() * avoidStrenght) / 1;
+         acc -= desiredSteeringForce.Normalized() * avoidStrenght;
       }
 
       public void Wander(double r, float wanderStrength)
@@ -63,7 +63,7 @@ namespace AntColonyPure
          Vector2 desiredDirection = Misc.VecFromAng(r) * wanderStrength;
          Vector2 desiredVelocity = desiredDirection * maxSpeed;
          Vector2 desiredSteeringForce = (desiredVelocity - vel) * steerStrength;
-         acc += (desiredSteeringForce.Normalized() * steerStrength) / 1;
+         acc += desiredSteeringForce.Normalized() * steerStrength;
       }
 
       public void AvoidBorders(float perseption, int w, int h)

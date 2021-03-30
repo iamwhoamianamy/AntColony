@@ -97,13 +97,13 @@ namespace AntColonyPure
             colony.ants.Add(new Ant(10, new Vector2(Width / 2, Height / 2),
                Misc.VecFromAng(r.NextDouble() * 360f)));
 
-         if (timeSteps % 3 == 0)
+         if (timeSteps % 9 == 0)
             colony.UpdatePheromones();
 
-         colony.pathPheromonesQTree = new QTree(new Vector2(Width / 2, Height / 2), new Vector2(Width, Height), 1);
+         colony.pathPheromonesQTree = new QTree(new Vector2(Width / 2, Height / 2), new Vector2(Width, Height), 4);
          colony.pathPheromonesQTree.Fill(colony.pathPheromones.ToList<Point>());
 
-         colony.foodPheromonesQTree = new QTree(new Vector2(Width / 2, Height / 2), new Vector2(Width, Height), 1);
+         colony.foodPheromonesQTree = new QTree(new Vector2(Width / 2, Height / 2), new Vector2(Width, Height), 4);
          colony.foodPheromonesQTree.Fill(colony.foodPheromones.ToList<Point>());
 
          foodQTree = new QTree(new Vector2(Width / 2, Height / 2), new Vector2(Width, Height), 1);

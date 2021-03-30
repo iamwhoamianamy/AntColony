@@ -82,7 +82,7 @@ namespace AntColonyPure
 
       public void DrawPheromones()
       {
-         GL.PointSize(4);
+         GL.PointSize(2);
          GL.Enable(EnableCap.PointSmooth);
 
          GL.Begin(PrimitiveType.Points);
@@ -103,32 +103,68 @@ namespace AntColonyPure
 
          GL.Disable(EnableCap.PointSmooth);
       }
+
       public void SeekFood(QTree foodQTree)
       {
          foreach (var ant in ants)
          {
-            GL.Color3(0, 0, 0);
-
             if (!ant.isCarryingFood)
             {
-               List<Neighbour> neibs = new List<Neighbour>();
-               foodQTree.QuarryOne(new Point(ant.loc + ant.vel.Normalized() * ant.size * 3f),
-                  ant.size * 6.0f, neibs);
-               
+               List<Point> neibs = new List<Point>();
+               foodQTree.Quarry(new Point(ant.loc + ant.vel.Normalized() * ant.size * 3.5f), ant.size * 5f, neibs);
+
                if (neibs.Count != 0)
                {
-                  float dist = Vector2.Distance(neibs[0].point.loc, ant.loc);
-                  if (dist < ant.size)
+                  Point minNeib = neibs[0];
+                  float minDist = Vector2.Distance(neibs[0].loc, ant.loc);
+
+                  foreach (var n in neibs)
+                  {
+                     float dist = Vector2.Distance(n.loc, ant.loc);
+                     if (dist < minDist)
+                     {
+                        minDist = dist;
+                        minNeib = n;
+                     }
+                  }
+
+                  if (minDist < ant.size)
                   {
                      ant.isCarryingFood = true;
                      ant.vel *= -1;
                   }
                   else
-                     ant.Steer(neibs[0].point.loc);
+                     ant.Steer(minNeib.loc, 1f);
                }
             }
          }
       }
+      //public void SeekFood(QTree foodQTree)
+      //{
+      //   foreach (var ant in ants)
+      //   {
+      //      GL.Color3(0, 0, 0);
+
+      //      if (!ant.isCarryingFood)
+      //      {
+      //         List<Neighbour> neibs = new List<Neighbour>();
+      //         foodQTree.QuarryOne(new Point(ant.loc + ant.vel.Normalized() * ant.size * 3f),
+      //            ant.size * 6.0f, neibs);
+
+      //         if (neibs.Count != 0)
+      //         {
+      //            float dist = Vector2.Distance(neibs[0].point.loc, ant.loc);
+      //            if (dist < ant.size)
+      //            {
+      //               ant.isCarryingFood = true;
+      //               ant.vel *= -1;
+      //            }
+      //            else
+      //               ant.Steer(neibs[0].point.loc);
+      //         }
+      //      }
+      //   }
+      //}
 
       public void SeekHome(Vector2 home)
       {
@@ -154,10 +190,6 @@ namespace AntColonyPure
       {
          foreach (var ant in ants)
          {
-            List<Neighbour> centNeibs = new List<Neighbour>();
-            List<Neighbour> leftNeibs = new List<Neighbour>();
-            List<Neighbour> rightNeibs = new List<Neighbour>();
-
             QTree tTree;
 
             if (ant.isCarryingFood)
@@ -165,51 +197,80 @@ namespace AntColonyPure
             else
                tTree = foodPheromonesQTree;
 
-            Vector2 leftZone = ant.loc + Misc.RotateVector(ant.vel.Normalized() * ant.size * 1.5f, 30f * Math.PI / 180f);
-            Vector2 centZone = ant.loc + ant.vel.Normalized() * ant.size * 1.5f;
-            Vector2 rightZone = ant.loc + Misc.RotateVector(ant.vel.Normalized() * ant.size * 1.5f, -30f * Math.PI / 180f);
+            //Misc.DrawRect(ant.loc + ant.vel.Normalized() * ant.size * 3.1f, new Vector2(ant.size * 3.8f));
 
-            //Misc.DrawRect(leftZone, new Vector2(ant.size * 1.25f));
-            //Misc.DrawRect(centZone, new Vector2(ant.size * 1.25f));
-            //Misc.DrawRect(rightZone, new Vector2(ant.size * 1.25f));
+            List<Point> neibs = new List<Point>();
+            tTree.Quarry(new Point(ant.loc + ant.vel.Normalized() * ant.size * 3.1f),
+               ant.size * 3.8f, neibs);
 
-            tTree.Quarry(new Point(leftZone), ant.size * 1.25f, leftNeibs);
-            tTree.Quarry(new Point(centZone), ant.size * 1.25f, centNeibs);
-            tTree.Quarry(new Point(rightZone), ant.size * 1.25f, rightNeibs);
+            if (neibs.Count != 0)
+            {
+               Vector2 temp = Vector2.Zero;
 
-            if (leftNeibs.Count != 0 && leftNeibs.Count >= centNeibs.Count && leftNeibs.Count >= rightNeibs.Count)
-               //ant.vel = Misc.RotateVector(ant.vel, 2f * Math.PI / 180f);
-               ant.Steer(leftZone);
-            else
-            if (rightNeibs.Count != 0 && rightNeibs.Count >= centNeibs.Count && rightNeibs.Count >= leftNeibs.Count)
-               //ant.vel = Misc.RotateVector(ant.vel, -2f * Math.PI / 180f);
-               ant.Steer(rightZone);
+               foreach (var n in neibs)
+                  temp += n.loc;
 
-            //else
-            //if (centNeibs.Count != 0 && centNeibs.Count >= leftNeibs.Count && centNeibs.Count >= rightNeibs.Count) ;
-
-            //float leftSat = 0;
-            //float centSat = 0;
-            //float rightSat = 0;
-
-            //if(leftNeibs.Count != 0)
-            //   foreach (var n in leftNeibs)
-            //      leftSat += ((Pheromone)n.point).saturation;
-
-            //if (centNeibs.Count != 0)
-            //   foreach (var n in centNeibs)
-            //      centSat += ((Pheromone)n.point).saturation;
-
-            //if (rightNeibs.Count != 0)
-            //   foreach (var n in rightNeibs)
-            //      rightSat += ((Pheromone)n.point).saturation;
-
-            //if(leftSat <= centSat && leftSat <= rightSat)
-            //   ant.Steer(leftZone);
-
-            //if (rightSat <= leftSat && rightSat <= centSat)
-            //   ant.Steer(rightZone);
+               ant.Steer(temp / neibs.Count(), 0.1f);
+            }
          }
+         //foreach (var ant in ants)
+         //{
+         //   List<Neighbour> centNeibs = new List<Neighbour>();
+         //   List<Neighbour> leftNeibs = new List<Neighbour>();
+         //   List<Neighbour> rightNeibs = new List<Neighbour>();
+
+         //   QTree tTree;
+
+         //   if (ant.isCarryingFood)
+         //      tTree = pathPheromonesQTree;
+         //   else
+         //      tTree = foodPheromonesQTree;
+
+         //   Vector2 leftZone = ant.loc + Misc.RotateVector(ant.vel.Normalized() * ant.size * 1.5f, 30f * Math.PI / 180f);
+         //   Vector2 centZone = ant.loc + ant.vel.Normalized() * ant.size * 1.5f;
+         //   Vector2 rightZone = ant.loc + Misc.RotateVector(ant.vel.Normalized() * ant.size * 1.5f, -30f * Math.PI / 180f);
+
+         //   //Misc.DrawRect(leftZone, new Vector2(ant.size * 1.25f));
+         //   //Misc.DrawRect(centZone, new Vector2(ant.size * 1.25f));
+         //   //Misc.DrawRect(rightZone, new Vector2(ant.size * 1.25f));
+
+         //   tTree.Quarry(new Point(leftZone), ant.size * 1.25f, leftNeibs);
+         //   tTree.Quarry(new Point(centZone), ant.size * 1.25f, centNeibs);
+         //   tTree.Quarry(new Point(rightZone), ant.size * 1.25f, rightNeibs);
+
+         //   if (leftNeibs.Count != 0 && leftNeibs.Count >= centNeibs.Count && leftNeibs.Count >= rightNeibs.Count)
+         //      //ant.vel = Misc.RotateVector(ant.vel, 2f * Math.PI / 180f);
+         //      ant.Steer(leftZone);
+         //   else
+         //   if (rightNeibs.Count != 0 && rightNeibs.Count >= centNeibs.Count && rightNeibs.Count >= leftNeibs.Count)
+         //      //ant.vel = Misc.RotateVector(ant.vel, -2f * Math.PI / 180f);
+         //      ant.Steer(rightZone);
+
+         //   //else
+         //   //if (centNeibs.Count != 0 && centNeibs.Count >= leftNeibs.Count && centNeibs.Count >= rightNeibs.Count) ;
+
+         //   //float leftSat = 0;
+         //   //float centSat = 0;
+         //   //float rightSat = 0;
+
+         //   //if(leftNeibs.Count != 0)
+         //   //   foreach (var n in leftNeibs)
+         //   //      leftSat += ((Pheromone)n.point).saturation;
+
+         //   //if (centNeibs.Count != 0)
+         //   //   foreach (var n in centNeibs)
+         //   //      centSat += ((Pheromone)n.point).saturation;
+
+         //   //if (rightNeibs.Count != 0)
+         //   //   foreach (var n in rightNeibs)
+         //   //      rightSat += ((Pheromone)n.point).saturation;
+
+         //   //if(leftSat <= centSat && leftSat <= rightSat)
+         //   //   ant.Steer(leftZone);
+
+         //   //if (rightSat <= leftSat && rightSat <= centSat)
+         //   //   ant.Steer(rightZone);
+         //}
       }
 
       public void AvoidBorders(float perseption, int w, int h)
