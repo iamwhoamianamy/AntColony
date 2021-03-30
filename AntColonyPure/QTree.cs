@@ -7,7 +7,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
-namespace AntColony
+namespace AntColonyPure
 {
    class QTree
    {

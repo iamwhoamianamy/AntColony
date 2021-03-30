@@ -8,17 +8,10 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
-namespace AntColony
+namespace AntColonyPure
 {
    class Misc
    {
-      public Random r;
-
-      public Misc()
-      {
-         r = new Random();
-      }
-
       public static void DrawRect(float x, float y, float w, float h)
       {
          GL.Begin(BeginMode.LineLoop);
@@ -58,10 +51,9 @@ namespace AntColony
          return -1f;
       }
 
-      public static Vector2 VecFromAng(double ang, float length)
+      public static Vector2 VecFromAng(double ang)
       {
-         double rand = ang * Math.PI / 180f;
-         return RotateVector(new Vector2(length, 0), rand);
+         return RotateVector(new Vector2(1, 0), ang * Math.PI / 180f).Normalized();
       }
 
       public static Vector2 RotateVector(Vector2 vec, double ang)
@@ -71,11 +63,6 @@ namespace AntColony
          res.Y = res.X * (float)Math.Sin(ang) + res.Y * (float)Math.Cos(ang);
 
          return res;
-      }
-
-      public static Vector2 VecFromAng(double ang)
-      {
-         return VecFromAng(ang, 1f);
       }
    }
 

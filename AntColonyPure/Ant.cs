@@ -7,7 +7,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
-namespace AntColony
+namespace AntColonyPure
 {
    class Ant : Point
    {
@@ -15,8 +15,6 @@ namespace AntColony
       public static float steerStrength = 0.1f;
       public static float avoidStrenght = 0.5f;
 
-      public Vector2 followTarget;
-      public Vector2 avoidTarget;
       //public bool isFollowing = false;
       //public bool isAvoiding = false;
 
@@ -26,7 +24,6 @@ namespace AntColony
          base(_size, _loc, _vel)
       {
          maxSpeed = _vel.Length;
-         avoidTarget = new Vector2();
       }
 
       public void UpdateLocation()
@@ -43,6 +40,14 @@ namespace AntColony
          Vector2 desiredVelocity = desiredDirection * maxSpeed;
          Vector2 desiredSteeringForce = (desiredVelocity - vel) * steerStrength;
          acc += (desiredSteeringForce.Normalized() * steerStrength) / 1;
+      }
+
+      public void Steer(Vector2 target, float _steerStrength)
+      {
+         Vector2 desiredDirection = (target - loc).Normalized();
+         Vector2 desiredVelocity = desiredDirection * maxSpeed;
+         Vector2 desiredSteeringForce = (desiredVelocity - vel) * _steerStrength;
+         acc += (desiredSteeringForce.Normalized() * _steerStrength) / 1;
       }
 
       public void Avoid(Vector2 target)
