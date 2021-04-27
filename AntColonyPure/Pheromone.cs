@@ -12,24 +12,24 @@ namespace AntColonyPure
 {
    class Pheromone : Point
    {
-      public int duration = 0;
-      public int durationLeft = 0;
+      public float duration = 0;
+      public float durationLeft = 0;
       public float saturation = 0;
       //public PhTypes type = PhTypes.Path;
       
-      public Pheromone(float _size, Vector2 _loc, int _duration) :
+      public Pheromone(float _size, Vector2 _loc, float _duration, float _durationLeft) :
         base(_size, _loc)
       {
          duration = _duration;
-         durationLeft = _duration;
-         saturation = (float)(durationLeft) / duration;
+         durationLeft = _durationLeft;
+         saturation = durationLeft / duration;
          //type = _type;
       }
 
-      public void UpdateSaturation()
+      public void UpdateSaturation(float decayRate)
       {
-         saturation = (float)(durationLeft) / duration;
-         durationLeft--;
+         saturation = durationLeft / duration;
+         durationLeft -= decayRate;
       }
    }
 }

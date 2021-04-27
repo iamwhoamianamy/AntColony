@@ -20,6 +20,7 @@ namespace AntColonyPure
       public List<Pheromone> pathPheromones;
       public List<Pheromone> foodPheromones;
 
+      float pheromonesSize = 4f;
       public float wanderStrength = 3f;
 
       public Colony()
@@ -51,10 +52,10 @@ namespace AntColonyPure
 
          foreach (var p in pathPheromones)
          {
-            if (p.durationLeft == 0)
+            if (p.durationLeft < 0.01)
                toRemove.Add(p);
             else
-               p.UpdateSaturation();
+               p.UpdateSaturation(0.3f);
          }
 
          pathPheromones.RemoveAll(p => toRemove.Contains(p));
@@ -63,46 +64,65 @@ namespace AntColonyPure
 
          foreach (var p in foodPheromones)
          {
-            if (p.durationLeft == 0)
+            if (p.durationLeft < 0.01)
                toRemove.Add(p);
             else
-               p.UpdateSaturation();
+               p.UpdateSaturation(0.3f);
          }
 
          foodPheromones.RemoveAll(p => toRemove.Contains(p));
 
          foreach (var ant in ants)
          {
-            if(ant.isCarryingFood)
-               foodPheromones.Add(new Pheromone(3, ant.loc, 150));
-            else
-               pathPheromones.Add(new Pheromone(3, ant.loc, 150));
+            if(ant.pheromoneDurationLeft > 0)
+            {
+               if (ant.isCarryingFood)
+               {
+                  foodPheromones.Add(new Pheromone(3, ant.loc, ant.pheromoneDuration, ant.pheromoneDurationLeft));
+               }
+               else
+               {
+                  pathPheromones.Add(new Pheromone(3, ant.loc, ant.pheromoneDuration, ant.pheromoneDurationLeft));
+               }
+               ant.pheromoneDurationLeft -= 1f;
+            }
          }
       }
 
-      public void DrawPheromones()
-      {
-         GL.PointSize(2);
-         GL.Enable(EnableCap.PointSmooth);
+      //public void UpdatePheromones()
+      //{
+      //   List<Pheromone> toRemove = new List<Pheromone>();
 
-         GL.Begin(PrimitiveType.Points);
-         foreach (var p in pathPheromones)
-         {
-            GL.Color3(0f, 0f, p.saturation);
-            GL.Vertex2(p.loc);
-         }
-         GL.End();
+      //   foreach (var p in pathPheromones)
+      //   {
+      //      if (p.durationLeft == 0)
+      //         toRemove.Add(p);
+      //      else
+      //         p.UpdateSaturation();
+      //   }
 
-         GL.Begin(PrimitiveType.Points);
-         foreach (var p in foodPheromones)
-         {
-            GL.Color3(p.saturation, 0f, 0f);
-            GL.Vertex2(p.loc);
-         }
-         GL.End();
+      //   pathPheromones.RemoveAll(p => toRemove.Contains(p));
 
-         GL.Disable(EnableCap.PointSmooth);
-      }
+      //   toRemove = new List<Pheromone>();
+
+      //   foreach (var p in foodPheromones)
+      //   {
+      //      if (p.durationLeft == 0)
+      //         toRemove.Add(p);
+      //      else
+      //         p.UpdateSaturation();
+      //   }
+
+      //   foodPheromones.RemoveAll(p => toRemove.Contains(p));
+
+      //   foreach (var ant in ants)
+      //   {
+      //      if (ant.isCarryingFood)
+      //         foodPheromones.Add(new Pheromone(3, ant.loc, 150));
+      //      else
+      //         pathPheromones.Add(new Pheromone(3, ant.loc, 150));
+      //   }
+      //}
 
       public void SeekFood(QTree foodQTree)
       {
@@ -132,6 +152,7 @@ namespace AntColonyPure
                   {
                      ant.isCarryingFood = true;
                      ant.vel *= -1;
+                     ant.pheromoneDurationLeft = ant.pheromoneDuration;
                   }
                   else
                      ant.Steer(minNeib.loc, 1f);
@@ -139,32 +160,6 @@ namespace AntColonyPure
             }
          }
       }
-      //public void SeekFood(QTree foodQTree)
-      //{
-      //   foreach (var ant in ants)
-      //   {
-      //      GL.Color3(0, 0, 0);
-
-      //      if (!ant.isCarryingFood)
-      //      {
-      //         List<Neighbour> neibs = new List<Neighbour>();
-      //         foodQTree.QuarryOne(new Point(ant.loc + ant.vel.Normalized() * ant.size * 3f),
-      //            ant.size * 6.0f, neibs);
-
-      //         if (neibs.Count != 0)
-      //         {
-      //            float dist = Vector2.Distance(neibs[0].point.loc, ant.loc);
-      //            if (dist < ant.size)
-      //            {
-      //               ant.isCarryingFood = true;
-      //               ant.vel *= -1;
-      //            }
-      //            else
-      //               ant.Steer(neibs[0].point.loc);
-      //         }
-      //      }
-      //   }
-      //}
 
       public void SeekHome(Vector2 home)
       {
@@ -176,10 +171,15 @@ namespace AntColonyPure
                if (dist < ant.size * 5f)
                   ant.Steer(home, 1f);
 
+               // Ant has brought food to home
                if(dist < ant.size)
                {
                   ant.isCarryingFood = false;
                   ant.vel *= -1;
+                  if(ant.pheromoneDuration < ant.maxPheromoneDuration)
+                     ant.pheromoneDuration += 5;
+
+                  ant.pheromoneDurationLeft = ant.pheromoneDuration;
                }
             }
             
@@ -200,8 +200,8 @@ namespace AntColonyPure
             //Misc.DrawRect(ant.loc + ant.vel.Normalized() * ant.size * 3.1f, new Vector2(ant.size * 3.8f));
 
             List<Point> neibs = new List<Point>();
-            tTree.Quarry(new Point(ant.loc + ant.vel.Normalized() * ant.size * 3.1f),
-               ant.size * 3.8f, neibs);
+            tTree.QuarryLimited(new Point(ant.loc + ant.vel.Normalized() * ant.size * 3.1f),
+               ant.size * 3.8f, neibs, 40);
 
             if (neibs.Count != 0)
             {
@@ -289,22 +289,51 @@ namespace AntColonyPure
          }
       }
 
-      public void DrawAnts()
+      public void DrawPheromones(float scale)
       {
          GL.Enable(EnableCap.PointSmooth);
-         GL.Color3(1f, 1f, 1f);
 
-         GL.Begin(PrimitiveType.Points);
-
-         foreach (var ant in ants)
+         foreach (var p in pathPheromones)
          {
-            GL.PointSize(ant.size);
-            GL.Vertex2(ant.loc);
+            GL.PointSize(pheromonesSize * p.saturation * scale);
+            GL.Color3(0f, 0f, p.saturation);
+
+            GL.Begin(PrimitiveType.Points);
+            GL.Vertex2(p.loc);
+            GL.End();
          }
 
-         GL.End();
+         foreach (var p in foodPheromones)
+         {
+            GL.PointSize(pheromonesSize * p.saturation * scale);
+            GL.Color3(p.saturation, 0f, 0f);
+
+            GL.Begin(PrimitiveType.Points);
+            GL.Vertex2(p.loc);
+            GL.End();
+         }
 
          GL.Disable(EnableCap.PointSmooth);
+      }
+
+
+      public void DrawAnts(float scale)
+      {
+         if(ants.Count != 0)
+         {
+            GL.Enable(EnableCap.PointSmooth);
+            GL.Color3(1f, 1f, 1f);
+            GL.PointSize(ants[0].size / 2f * scale);
+
+            GL.Begin(PrimitiveType.Points);
+
+            foreach (var ant in ants)
+               GL.Vertex2(ant.loc);
+
+            GL.End();
+
+            GL.Disable(EnableCap.PointSmooth);
+         }
       }
    }
 }

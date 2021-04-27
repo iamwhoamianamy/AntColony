@@ -19,6 +19,11 @@ namespace AntColonyPure
       //public bool isAvoiding = false;
 
       public bool isCarryingFood = false;
+      public float pheromoneDurationLeft = 50;
+      public float pheromoneDuration = 50;
+      public float maxPheromoneDuration = 100;
+
+      public int foodCount = 0;
 
       public Ant(float _size, Vector2 _loc, Vector2 _vel) :
          base(_size, _loc, _vel)

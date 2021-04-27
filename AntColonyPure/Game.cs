@@ -20,11 +20,14 @@ namespace AntColonyPure
       private QTree foodQTree;
       private List<Point> food;
 
-      float mouseX, mouseY;
-
       bool doSpawn = false;
       int timeSteps = 0;
 
+      float mouseX = 0;
+      float mouseY = 0;
+
+      float scalingFactor = 1f;
+      Vector2 translationVector;
       public Game(int width, int height, string title) :
          base(width, height, GraphicsMode.Default, title)
       {
@@ -38,6 +41,9 @@ namespace AntColonyPure
          colony = new Colony();
          food = new List<Point>();
          r = new Random();
+         translationVector = Vector2.Zero;
+
+         //scalePlace = new Vector2(Width / 2, Height / 2);
 
          base.OnLoad(e);
       }
@@ -48,34 +54,24 @@ namespace AntColonyPure
 
          UpdatePhysics();
          Draw();
-         Title = colony.ants.Count().ToString();
+
+         //Title = colony.ants.Count().ToString();
+         Title = scalingFactor.ToString();
          timeSteps = (timeSteps + 1) % 1000;
 
          Context.SwapBuffers();
          base.OnRenderFrame(e);
       }
 
-      protected override void OnKeyDown(KeyboardKeyEventArgs e)
-      {
-         switch(e.Key)
-         {
-            case Key.Space:
-            {
-               doSpawn = !doSpawn;
-               break;
-            }
-         }
-         base.OnKeyDown(e);
-      }
-
       private void Draw()
       {
          // Draw objects here
          GL.ClearColor(backgroundColor);
-         colony.DrawPheromones();
-         colony.DrawAnts();
+         colony.DrawPheromones(scalingFactor);
+         colony.DrawAnts(scalingFactor);
 
-         GL.PointSize(5);
+         // Drawing plants
+         GL.PointSize(5 * scalingFactor);
          GL.Enable(EnableCap.PointSmooth);
          GL.Color3(0f, 1f, 0f);
 
@@ -85,8 +81,39 @@ namespace AntColonyPure
             GL.Vertex2(f.loc);
 
          GL.End();
+         GL.Disable(EnableCap.PointSmooth);
+
+
+         GL.PointSize(20f);
+
+         GL.Vertex2(Width / 4, Height / 4);
+         GL.Vertex2(3 * Width / 4, Height / 4);
+         GL.Vertex2(Width / 4, 3 * Height / 4);
+         GL.Vertex2(3 * Width / 4, 3 * Height / 4);
 
          GL.Disable(EnableCap.PointSmooth);
+
+
+
+         ///////////////////////////////////////////////////
+         //QTree qTree = new QTree(new Vector2(Width / 2, Height / 2), new Vector2(Width, Height), 2);
+
+         //List<Point> points = new List<Point>();
+         //qTree.Fill(colony.pathPheromones.ToList<Point>());
+         //qTree.QuarryLimited(new Point(new Vector2(mouseX, mouseY)), 100, points, 20);
+
+         //GL.Color3(1f, 1f, 0f);
+         //GL.PointSize(10f);
+
+         //GL.Begin(PrimitiveType.Points);
+
+         //foreach (var p in points)
+         //   GL.Vertex2(p.loc);
+
+         //GL.End();
+
+         // Matrix manipulations
+         //GL.LoadIdentity();
       }
 
       private void UpdatePhysics()
@@ -112,7 +139,7 @@ namespace AntColonyPure
          colony.FollowPheromones();
          colony.SeekFood(foodQTree);
          colony.SeekHome(new Vector2(Width / 2, Height / 2));
-
+         
          colony.AvoidBorders(30, Width, Height);
          colony.BounceFromBorders(Width, Height);
          colony.UpdateLocation();
@@ -131,12 +158,75 @@ namespace AntColonyPure
          base.OnResize(e);
       }
 
+      protected override void OnKeyDown(KeyboardKeyEventArgs e)
+      {
+         switch (e.Key)
+         {
+            case Key.Space:
+            {
+               doSpawn = !doSpawn;
+               break;
+            }
+            case Key.Enter:
+            {
+               translationVector.X = 0f;
+               translationVector.Y = 0f;
+               scalingFactor = 1f;
+
+               GL.LoadIdentity();
+               break;
+            }
+         }
+         base.OnKeyDown(e);
+      }
+
       protected override void OnMouseDown(MouseButtonEventArgs e)
       {
-         Vector2 clickCoords = new Vector2(e.X, e.Y);
-         food.Add(new Point(clickCoords));
+         switch(e.Button)
+         {
+            case MouseButton.Left:
+            {
+               Vector2 clickCoords = new Vector2(e.X, e.Y);
+               //food.Add(new Point(new Vector2(Width, Height) * scalingFactor / 2f - 
+               //                   new Vector2(Width, Height) / 2f));
+
+               clickCoords -= new Vector2(Width / 2, Height / 2);
+               clickCoords /= scalingFactor;
+               clickCoords += translationVector;
+               clickCoords += new Vector2(Width / 2, Height / 2);
+
+               food.Add(new Point(clickCoords));
+               break;
+            }
+         }
 
          base.OnMouseDown(e);
+      }
+
+      protected override void OnMouseMove(MouseMoveEventArgs e)
+      {
+         if (e.Mouse.IsButtonDown(MouseButton.Middle))
+         {
+            GL.Translate(e.XDelta, e.YDelta, 0);
+            translationVector -= new Vector2(e.XDelta, e.YDelta);
+         }
+
+         mouseX = e.X;
+         mouseY = e.Y;
+          
+         base.OnMouseMove(e);
+      }
+
+      protected override void OnMouseWheel(MouseWheelEventArgs e)
+      {
+         scalingFactor *= 1 + e.Delta * 0.05f;
+         float fac = 1 + e.Delta * 0.05f;
+
+         GL.Translate(Width / 2f + translationVector.X, Height / 2f + translationVector.Y, 0);
+         GL.Scale(fac, fac, fac);
+         GL.Translate(-Width / 2f - translationVector.X, -Height / 2f - translationVector.Y, 0);
+
+         base.OnMouseWheel(e);
       }
    }
 

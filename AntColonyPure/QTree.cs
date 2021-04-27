@@ -6,6 +6,7 @@ using System.Linq;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
+using System.Collections;
 
 namespace AntColonyPure
 {
@@ -135,6 +136,40 @@ namespace AntColonyPure
             topright.Quarry(centralPoint, widthOfSearch, found);
             botleft.Quarry(centralPoint, widthOfSearch, found);
             botright.Quarry(centralPoint, widthOfSearch, found);
+         }
+      }
+
+      public void QuarryLimited(Point centralPoint, float widthOfSearch, List<Point> found, int limit)
+      {
+         Queue<QTree> queue = new Queue<QTree>();
+         Queue<int> layer = new Queue<int>();
+
+         bool doAddNew = true;
+
+         queue.Enqueue(this);
+         //layer.Enqueue(1);
+
+         while(queue.Count != 0)
+         {
+            QTree t = queue.Dequeue();
+
+            foreach (Point other in t.points)
+               if (centralPoint != other && Contains(other.loc, new Vector2(centralPoint.loc.X, centralPoint.loc.Y), new Vector2(widthOfSearch, widthOfSearch)))
+                  found.Add(other.Copy());
+
+            if (found.Count >= limit)
+            {
+               return;
+               doAddNew = false;
+            }
+
+            if(doAddNew && t.isDivided)
+            {
+               queue.Enqueue(t.topleft);
+               queue.Enqueue(t.topright);
+               queue.Enqueue(t.botleft);
+               queue.Enqueue(t.botright);
+            }
          }
       }
    }
