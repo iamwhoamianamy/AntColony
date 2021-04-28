@@ -21,63 +21,6 @@ namespace AntColonyRaster
          ants = new List<Ant>();
       }
 
-      public void BounceFromBorders(float w, float h)
-      {
-         foreach (var ant in ants)
-         {
-            ant.BounceFromBorders(w, h);
-         }
-      }
-
-      public void Wander(Random r)
-      {
-         foreach (var ant in ants)
-         {
-            ant.Wander(r.NextDouble() * 360f, wanderStrength);
-         }
-      }
-
-      public void SeekHome(Vector2 home)
-      {
-         foreach (var ant in ants)
-         {
-            if (ant.isCarryingFood)
-            {
-               float dist = Vector2.Distance(home, ant.loc);
-               if (dist < ant.size * 3.5f)
-                  ant.Steer(home, 1f);
-
-               // Ant has brought food to home
-               if(dist < ant.size * 2f)
-               {
-                  ant.isCarryingFood = false;
-                  ant.vel *= -1;
-                  if(ant.pheromoneDuration < ant.maxPheromoneDuration)
-                     ant.pheromoneDuration += 5;
-
-                  ant.pheromoneDurationLeft = ant.pheromoneDuration;
-               }
-            }
-            
-         }
-      }
-
-      public void AvoidBorders(float perseption, int w, int h)
-      {
-         foreach (var ant in ants)
-         {
-            ant.AvoidBorders(perseption, w, h);
-         }
-      }
-
-      public void UpdateLocation()
-      {
-         foreach (var ant in ants)
-         {
-            ant.UpdateLocation();
-         }
-      }
-
       public void DrawAnts()
       {
          if(ants.Count != 0)
@@ -95,6 +38,28 @@ namespace AntColonyRaster
 
             GL.Disable(EnableCap.PointSmooth);
          }
+      }
+
+      internal void PerhormBehaviour(Random r, float width, float height)
+      {
+         Vector2 home = new Vector2(width / 2, height / 2);
+
+         foreach (var ant in ants)
+         {
+            ant.Wander(r.NextDouble() * 360f, wanderStrength);
+            ant.SeekHome(home);
+            ant.AvoidBorders(30, width, height);
+            ant.BounceFromBorders(width, height);
+
+            if (ant.isLockedOnFood)
+               ant.Steer(ant.foodAim, 2f);
+
+            if (ant.isLockedOnHome)
+               ant.Steer(ant.homeAim, 2f);
+
+            ant.UpdateLocation();
+         }
+
       }
    }
 }

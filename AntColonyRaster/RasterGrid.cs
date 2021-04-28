@@ -189,94 +189,111 @@ namespace AntColonyRaster
             int yCent = (int)(cent.Y / _cellH);
 
             Vector2 toSteerForPher = Vector2.Zero;
-
-            if (ant.isCarryingFood)
+            if (!ant.isLockedOnHome && !ant.isLockedOnFood)
             {
-               int foundPheromones = 0;
-
-               if (xCent > width / 2 && xCent < _resolution - width / 2 &&
-                   yCent > width / 2 && yCent < _resolution - width / 2)
-                  for (int i = 0; i < width; i++)
-                  {
-                     int x = xCent - width / 2 + i;
-
-                     for (int j = 0; j < width; j++)
-                     {
-                        int y = yCent - width / 2 + j;
-
-                        if (grid[x][y].isCarryingHomePher)
-                        {
-                           foundPheromones++;
-                           toSteerForPher.X += grid[x][y].pos.X;
-                           toSteerForPher.Y += grid[x][y].pos.Y;
-                        }
-                     }
-                  }
-
-               if (foundPheromones != 0)
+               if (ant.isCarryingFood)
                {
-                  toSteerForPher /= foundPheromones;
-                  ant.Steer(toSteerForPher, 0.1f);
-               }
-            }
-            else
-            {
-               Vector2 toSteerForFood = Vector2.Zero;
-               int foundPheromones = 0;
-               bool didFindFood = false;
+                  int foundPheromones = 0;
 
-               if (xCent > width && xCent < _resolution - width &&
-                   yCent > width && yCent < _resolution - width)
-                  for (int i = 0; i < width && !didFindFood; i++)
-                  {
-                     int x = xCent - width / 2 + i;
-                     for (int j = 0; j < width && !didFindFood; j++)
+                  if (xCent > width / 2 && xCent < _resolution - width / 2 &&
+                      yCent > width / 2 && yCent < _resolution - width / 2)
+                     for (int i = 0; i < width; i++)
                      {
-                        int y = yCent - width / 2 + j;
+                        int x = xCent - width / 2 + i;
 
-                        if (grid[x][y].isCarryingFood)
+                        for (int j = 0; j < width; j++)
                         {
-                           didFindFood = true;
-                           toSteerForFood.X += grid[x][y].pos.X;
-                           toSteerForFood.Y += grid[x][y].pos.Y;
-                        }
-                        else
-                           if (grid[x][y].isCarryingFoodPher)
+                           int y = yCent - width / 2 + j;
+
+                           if (grid[x][y].isCarryingHomePher)
                            {
                               foundPheromones++;
                               toSteerForPher.X += grid[x][y].pos.X;
                               toSteerForPher.Y += grid[x][y].pos.Y;
                            }
+                        }
                      }
-                  }
 
-               if(didFindFood == true)
-               {
-                  ant.Steer(toSteerForFood, 0.5f);
-               }
-               else
                   if (foundPheromones != 0)
                   {
                      toSteerForPher /= foundPheromones;
                      ant.Steer(toSteerForPher, 0.1f);
                   }
+               }
+               else
+               {
+                  int foundPheromones = 0;
+                  bool didFindFood = false;
+
+                  if (xCent > width && xCent < _resolution - width &&
+                      yCent > width && yCent < _resolution - width)
+                     for (int i = 0; i < width && !didFindFood; i++)
+                     {
+                        int x = xCent - width / 2 + i;
+                        for (int j = 0; j < width && !didFindFood; j++)
+                        {
+                           int y = yCent - width / 2 + j;
+
+                           if (grid[x][y].isCarryingFood)
+                           {
+                              didFindFood = true;
+                              ant.isLockedOnFood = true;
+                              ant.foodAim = new Vector2(grid[x][y].pos.X, grid[x][y].pos.Y);
+                           }
+                           else
+                              if (grid[x][y].isCarryingFoodPher)
+                              {
+                                 foundPheromones++;
+                                 toSteerForPher.X += grid[x][y].pos.X;
+                                 toSteerForPher.Y += grid[x][y].pos.Y;
+                              }
+                        }
+                     }
+
+                  if (foundPheromones != 0)
+                  {
+                     toSteerForPher /= foundPheromones;
+                     ant.Steer(toSteerForPher, 0.1f);
+                  }
+               }
             }
          }
       }
 
       public void EatFood(List<Ant> ants, List<Point> food)
       {
+         float fwidth = 30;
+         int width = (int)Math.Max(1, Math.Min(fwidth / _cellW, 5));
+
          foreach (var ant in ants)
          {
-            Vector2 cent = ant.loc + ant.vel.Normalized();
-            int xCent = (int)(cent.X / _cellW);
-            int yCent = (int)(cent.Y / _cellH);
-
-            if(grid[xCent][yCent].isCarryingFood)
+            if (!ant.isCarryingFood)
             {
-               ant.vel *= -1;
-               ant.isCarryingFood = true;
-               ant.pheromoneDurationLeft = ant.pheromoneDuration;
+               Vector2 cent = ant.loc;
+               int xCent = (int)(cent.X / _cellW);
+               int yCent = (int)(cent.Y / _cellH);
+               bool didFindFood = false;
+
+               if (xCent > width / 2 && xCent < _resolution - width / 2 &&
+                   yCent > width / 2 && yCent < _resolution - width / 2)
+                  for (int i = 0; i < width && !didFindFood; i++)
+                  {
+                     int x = xCent - width / 2 + i;
+
+                     for (int j = 0; j < width && !didFindFood; j++)
+                     {
+                        int y = yCent - width / 2 + j;
+
+                        if (grid[x][y].isCarryingFood)
+                        {
+                           ant.vel *= -1;
+                           ant.isCarryingFood = true;
+                           ant.isLockedOnFood = false;
+                           ant.pheromoneDurationLeft = ant.pheromoneDuration;
+                           didFindFood = true;
+                        }
+                     }
+                  }
             }
          }
       }

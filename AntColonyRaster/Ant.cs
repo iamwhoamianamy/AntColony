@@ -16,6 +16,13 @@ namespace AntColonyRaster
       public static float avoidStrenght = 0.5f;
 
       public bool isCarryingFood = false;
+
+      public bool isLockedOnHome = false;
+      public Vector2 homeAim;
+
+      public bool isLockedOnFood = false;
+      public Vector2 foodAim;
+
       public float pheromoneDurationLeft = 50;
       public float pheromoneDuration = 50;
       public float maxPheromoneDuration = 100;
@@ -68,7 +75,7 @@ namespace AntColonyRaster
          acc += desiredSteeringForce.Normalized() * steerStrength;
       }
 
-      public void AvoidBorders(float perseption, int w, int h)
+      public void AvoidBorders(float perseption, float w, float h)
       {
          if (loc.Y < perseption)
          {
@@ -111,5 +118,29 @@ namespace AntColonyRaster
          }
       }
 
+      public void SeekHome(Vector2 home)
+      {
+         if (isCarryingFood)
+         {
+            float dist = Vector2.Distance(home, loc);
+            if (dist < size * 5.5f)
+            {
+               homeAim = home;
+               isLockedOnHome = true;
+            }
+            // Ant has brought food to home
+            if (dist < size * 2f)
+            {
+               isCarryingFood = false;
+               isLockedOnHome = false;
+               vel *= -1;
+
+               if (pheromoneDuration < maxPheromoneDuration)
+                  pheromoneDuration += 5;
+
+               pheromoneDurationLeft = pheromoneDuration;
+            }
+         }
+      }
    }
 }

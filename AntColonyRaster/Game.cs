@@ -85,11 +85,8 @@ namespace AntColonyRaster
                Misc.VecFromAng(r.NextDouble() * 360f)));
 
          // Updating ants
-         colony.Wander(r);
-         colony.SeekHome(new Vector2(Width / 2, Height / 2));
-         colony.AvoidBorders(30, Width, Height);
-         colony.BounceFromBorders(Width, Height);
-         colony.UpdateLocation();
+
+         colony.PerhormBehaviour(r, Width, Height);
 
          // Rasterising data
          rasterGrid.ResetAnts();
@@ -126,12 +123,12 @@ namespace AntColonyRaster
             }
             case Key.Plus:
             {
-               rasterGrid.AddResolution(1);
+               rasterGrid.AddResolution(4);
                break;
             }
             case Key.Minus:
             {
-               rasterGrid.AddResolution(-1);
+               rasterGrid.AddResolution(-4);
                break;
             }
          }
