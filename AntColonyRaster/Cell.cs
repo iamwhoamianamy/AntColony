@@ -12,8 +12,6 @@ namespace AntColonyRaster
 {
    class Cell
    {
-      public Color4 color;
-
       public bool isCarryingHomePher;
       public bool isCarryingFoodPher;
 
@@ -25,14 +23,10 @@ namespace AntColonyRaster
 
       public bool isCarryingAnt;
 
-      public float maxPherSat = 500;
+      public Vector2 loc;
 
-      public Vector2 pos;
-
-      public Cell(Vector2 pos)
+      public Cell(Vector2 loc)
       {
-         color = Color4.Black;
-
          isCarryingHomePher = false;
          isCarryingFoodPher = false;
          isCarryingFood = false;
@@ -43,11 +37,13 @@ namespace AntColonyRaster
          foodPherSat = 0f;
          foodSaturation = 0f;
 
-         this.pos = pos;
+         this.loc = loc;
       }
 
       public void Draw()
       {
+         Color4 color = new Color4(0.3f, 0.1f, 0.1f, 1f);
+
          if (isCarryingFood)
          {
             color.G = foodSaturation;
@@ -60,20 +56,20 @@ namespace AntColonyRaster
             {
                if (isCarryingHomePher)
                {
-                  float homeSat = homePherSat / maxPherSat;
-                  color.R = homeSat;
+                  float homeSat = homePherSat;
+                  color.R += homeSat;
                }
                if (isCarryingFoodPher)
                {
-                  float foodSat = foodPherSat / maxPherSat;
-                  color.B = foodSat;
+                  float foodSat = foodPherSat;
+                  color.B += foodSat;
                }
             }
          }
 
          GL.Color4(color);
          GL.Begin(BeginMode.Points);
-         GL.Vertex2(pos.X, pos.Y);
+         GL.Vertex2(loc.X, loc.Y);
          GL.End();
       }
    }

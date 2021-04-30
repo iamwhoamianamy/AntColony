@@ -21,11 +21,12 @@ namespace AntColonyRaster
       public Vector2 homeAim;
 
       public bool isLockedOnFood = false;
-      public Vector2 foodAim;
+      public Cell foodAim;
 
-      public float pheromoneDurationLeft = 50;
-      public float pheromoneDuration = 50;
-      public float maxPheromoneDuration = 100;
+      public bool isCarryingPheromone = true;
+      public float pheromoneDurationLeft;
+      
+      public static readonly float pheromoneDuration = 0.25f;
 
       public int foodCount = 0;
 
@@ -33,6 +34,7 @@ namespace AntColonyRaster
          base(_size, _loc, _vel)
       {
          maxSpeed = _vel.Length;
+         pheromoneDurationLeft = pheromoneDuration;
       }
 
       public void UpdateLocation()
@@ -135,10 +137,8 @@ namespace AntColonyRaster
                isLockedOnHome = false;
                vel *= -1;
 
-               //if (pheromoneDuration < maxPheromoneDuration)
-               //   pheromoneDuration += 5;
-
-               pheromoneDurationLeft = pheromoneDuration;
+               pheromoneDurationLeft = Ant.pheromoneDuration;
+               isCarryingPheromone = true;
             }
          }
       }

@@ -13,8 +13,8 @@ namespace AntColonyRaster
    class Colony
    {
       public List<Ant> ants;
-      float pheromonesSize = 4f;
       public float wanderStrength = 3f;
+      private float antSaturationDecayRate = 0.0005f;
 
       public Colony()
       {
@@ -40,7 +40,7 @@ namespace AntColonyRaster
          }
       }
 
-      internal void PerhormBehaviour(Random r, float width, float height)
+      public void PerhormBehaviour(Random r, float width, float height)
       {
          Vector2 home = new Vector2(width / 2, height / 2);
 
@@ -52,7 +52,8 @@ namespace AntColonyRaster
             ant.BounceFromBorders(width, height);
 
             if (ant.isLockedOnFood)
-               ant.Steer(ant.foodAim, 2f);
+               if(ant.foodAim.isCarryingFood)
+                  ant.Steer(ant.foodAim.loc, 2f);
 
             if (ant.isLockedOnHome)
                ant.Steer(ant.homeAim, 2f);
@@ -60,6 +61,19 @@ namespace AntColonyRaster
             ant.UpdateLocation();
          }
 
+      }
+
+      public void UpdatePheromones()
+      {
+         for (int i = 0; i < ants.Count; i++)
+         {
+            if(ants[i].isCarryingPheromone)
+            {
+               ants[i].pheromoneDurationLeft -= antSaturationDecayRate;
+               if (ants[i].pheromoneDurationLeft <= 0)
+                  ants[i].isCarryingPheromone = false;
+            }
+         }
       }
    }
 }

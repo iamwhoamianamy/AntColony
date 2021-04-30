@@ -17,12 +17,20 @@ namespace AntColonyRaster
       public Color4 backgroundColor;
       public Cell[][] grid;
       private int _resolution = 0;
+      public float Resolution => _resolution;
 
       private float _cellW, _cellH;
+
+      public float CellW => _cellW;
+      public float CellH => _cellH;
+
       private float _screenW, _screenH;
 
       private int _minRes = 2;
       private int _maxRes = 500;
+
+      private float pheromoneDecayRate = 0.0005f;
+      private float antsHunger = 0.3f;
 
       public RasterGrid(int resolution, float screenW, float screenH, Color4 basicColor)
       {
@@ -63,7 +71,6 @@ namespace AntColonyRaster
             for (int j = 0; j < _resolution; j++)
             {
                grid[i][j].isCarryingAnt = false;
-               grid[i][j].color = Color4.Black;
             }
          }
       }
@@ -108,8 +115,7 @@ namespace AntColonyRaster
          {
             for (int j = 0; j < _resolution; j++)
             {
-               //grid[i][j].Draw(_cellW * (j + 1) - _cellW / 2, _cellH * (i + 1) - _cellH / 2);
-               grid[i][j].Draw();
+               grid[i][j].Draw(); 
             }
          }
       }
@@ -132,19 +138,18 @@ namespace AntColonyRaster
             int xi = (int)Math.Floor(ants[i].loc.X / _cellW);
             int yi = (int)Math.Floor(ants[i].loc.Y / _cellH);
 
-            if (!ants[i].isCarryingFood)
+            if (ants[i].isCarryingPheromone)
             {
-               grid[xi][yi].isCarryingHomePher = true;
-               grid[xi][yi].homePherSat = Math.Max((float)Math.Min(ants[i].pheromoneDurationLeft + grid[xi][yi].homePherSat, grid[xi][yi].maxPherSat), grid[xi][yi].homePherSat);
-
-               ants[i].pheromoneDurationLeft -= 0.1f;
-            }
-            else
-            {
-               grid[xi][yi].isCarryingFoodPher = true;
-               grid[xi][yi].foodPherSat = Math.Max((float)Math.Min(ants[i].pheromoneDurationLeft + grid[xi][yi].foodPherSat, grid[xi][yi].maxPherSat), grid[xi][yi].foodPherSat);
-
-               ants[i].pheromoneDurationLeft -= 0.1f;
+               if (ants[i].isCarryingFood)
+               {
+                  grid[xi][yi].isCarryingFoodPher = true;
+                  grid[xi][yi].foodPherSat = Math.Max(Math.Min(ants[i].pheromoneDurationLeft + grid[xi][yi].foodPherSat, 1f), grid[xi][yi].foodPherSat);
+               }
+               else
+               {
+                  grid[xi][yi].isCarryingHomePher = true;
+                  grid[xi][yi].homePherSat = Math.Max(Math.Min(ants[i].pheromoneDurationLeft + grid[xi][yi].homePherSat, 1f), grid[xi][yi].homePherSat);
+               }
             }
          }
       }
@@ -155,21 +160,28 @@ namespace AntColonyRaster
          {
             for (int j = 0; j < _resolution; j++)
             {
-               grid[i][j].foodPherSat -= 0.1f;
-               grid[i][j].homePherSat -= 0.1f;
+               if(grid[i][j].isCarryingHomePher)
+               {
+                  if (grid[i][j].homePherSat > 0f)
+                     grid[i][j].homePherSat -= pheromoneDecayRate;
+                  else
+                     grid[i][j].isCarryingHomePher = false;
+               }
 
-               if (grid[i][j].homePherSat <= 0f)
-                   grid[i][j].isCarryingHomePher = false;
-
-               if (grid[i][j].foodPherSat <= 0f)
-                  grid[i][j].isCarryingFoodPher = false;
+               if (grid[i][j].isCarryingFoodPher)
+               {
+                  if (grid[i][j].foodPherSat > 0f)
+                     grid[i][j].foodPherSat -= pheromoneDecayRate;
+                  else
+                     grid[i][j].isCarryingFoodPher = false;
+               }
             }
          }
       }
 
       public void PerformBehaviour(List<Ant> ants)
       {
-         float fwidth = 30;
+         float fwidth = 20;
          int width = (int)(fwidth / _cellW);
          if (width % 2 != 1)
             width++;
@@ -190,11 +202,16 @@ namespace AntColonyRaster
                int xCent3 = (int)(cent3.X / _cellW);
                int yCent3 = (int)(cent3.Y / _cellH);
 
-               Vector2 toSteerForPher = Vector2.Zero;
+               Vector2 toSteerForPher1 = Vector2.Zero;
+               Vector2 toSteerForPher2 = Vector2.Zero;
+               Vector2 toSteerForPher3 = Vector2.Zero;
+
+               int foundPheromones1 = 0;
+               int foundPheromones2 = 0;
+               int foundPheromones3 = 0;
 
                if (ant.isCarryingFood)
                {
-                  int foundPheromones = 0;
 
                   if (xCent1 > width / 2 && xCent1 < _resolution - width / 2 &&
                       yCent1 > width / 2 && yCent1 < _resolution - width / 2)
@@ -209,9 +226,9 @@ namespace AntColonyRaster
 
                            if (grid[x][y].isCarryingHomePher)
                            {
-                              foundPheromones++;
-                              toSteerForPher.X += grid[x][y].pos.X;
-                              toSteerForPher.Y += grid[x][y].pos.Y;
+                              foundPheromones1++;
+                              toSteerForPher1.X += grid[x][y].loc.X;
+                              toSteerForPher1.Y += grid[x][y].loc.Y;
                            }
                         }
                      }
@@ -230,9 +247,9 @@ namespace AntColonyRaster
 
                            if (grid[x][y].isCarryingHomePher)
                            {
-                              foundPheromones++;
-                              toSteerForPher.X += grid[x][y].pos.X;
-                              toSteerForPher.Y += grid[x][y].pos.Y;
+                              foundPheromones2++;
+                              toSteerForPher2.X += grid[x][y].loc.X;
+                              toSteerForPher2.Y += grid[x][y].loc.Y;
                            }
                         }
                      }
@@ -251,23 +268,35 @@ namespace AntColonyRaster
 
                            if (grid[x][y].isCarryingHomePher)
                            {
-                              foundPheromones++;
-                              toSteerForPher.X += grid[x][y].pos.X;
-                              toSteerForPher.Y += grid[x][y].pos.Y;
+                              foundPheromones3++;
+                              toSteerForPher3.X += grid[x][y].loc.X;
+                              toSteerForPher3.Y += grid[x][y].loc.Y;
                            }
                         }
                      }
                   }
 
-                  if (foundPheromones != 0)
+                  if (foundPheromones1 != 0 && foundPheromones1 >= foundPheromones2 && foundPheromones1 >= foundPheromones3)
                   {
-                     toSteerForPher /= foundPheromones;
-                     ant.Steer(toSteerForPher, 0.5f);
+                     toSteerForPher1 /= foundPheromones1;
+                     ant.Steer(toSteerForPher1, 0.1f);
                   }
+                  else
+                  if (foundPheromones2 != 0 && foundPheromones2 >= foundPheromones1 && foundPheromones2 >= foundPheromones3)
+                  {
+                     toSteerForPher2 /= foundPheromones2;
+                     ant.Steer(toSteerForPher2, 0.1f);
+                  }
+                  else
+                  if (foundPheromones3 != 0 && foundPheromones3 >= foundPheromones1 && foundPheromones3 >= foundPheromones2)
+                  {
+                     toSteerForPher3 /= foundPheromones3;
+                     ant.Steer(toSteerForPher3, 0.1f);
+                  }
+
                }
                else
                {
-                  int foundPheromones = 0;
                   bool didFindFood = false;
 
                   if (xCent1 > width && xCent1 < _resolution - width &&
@@ -284,19 +313,19 @@ namespace AntColonyRaster
                            {
                               didFindFood = true;
                               ant.isLockedOnFood = true;
-                              ant.foodAim = new Vector2(grid[x][y].pos.X, grid[x][y].pos.Y);
+                              ant.foodAim = grid[x][y];
                            }
                            else
                            {
                               if (grid[x][y].isCarryingFoodPher)
                               {
-                                 foundPheromones++;
-                                 toSteerForPher.X += grid[x][y].pos.X;
-                                 toSteerForPher.Y += grid[x][y].pos.Y;
+                                 foundPheromones1++;
+                                 toSteerForPher1.X += grid[x][y].loc.X;
+                                 toSteerForPher1.Y += grid[x][y].loc.Y;
                               }
                            }
 
-                           //grid[x][y].color = Color4.Yellow;
+                           //rid[x][y].color = Color4.Yellow;
                         }
                      }
                   }
@@ -315,15 +344,15 @@ namespace AntColonyRaster
                            {
                               didFindFood = true;
                               ant.isLockedOnFood = true;
-                              ant.foodAim = new Vector2(grid[x][y].pos.X, grid[x][y].pos.Y);
+                              ant.foodAim = grid[x][y];
                            }
                            else
                            {
                               if (grid[x][y].isCarryingFoodPher)
                               {
-                                 foundPheromones++;
-                                 toSteerForPher.X += grid[x][y].pos.X;
-                                 toSteerForPher.Y += grid[x][y].pos.Y;
+                                 foundPheromones2++;
+                                 toSteerForPher2.X += grid[x][y].loc.X;
+                                 toSteerForPher2.Y += grid[x][y].loc.Y;
                               }
                            }
 
@@ -346,15 +375,15 @@ namespace AntColonyRaster
                            {
                               didFindFood = true;
                               ant.isLockedOnFood = true;
-                              ant.foodAim = new Vector2(grid[x][y].pos.X, grid[x][y].pos.Y);
+                              ant.foodAim = grid[x][y];
                            }
                            else
                            {
                               if (grid[x][y].isCarryingFoodPher)
                               {
-                                 foundPheromones++;
-                                 toSteerForPher.X += grid[x][y].pos.X;
-                                 toSteerForPher.Y += grid[x][y].pos.Y;
+                                 foundPheromones3++;
+                                 toSteerForPher3.X += grid[x][y].loc.X;
+                                 toSteerForPher3.Y += grid[x][y].loc.Y;
                               }
                            }
 
@@ -363,10 +392,22 @@ namespace AntColonyRaster
                      }
                   }
 
-                  if (foundPheromones != 0 && !didFindFood)
+                  if (foundPheromones1 != 0 && !didFindFood && foundPheromones1 >= foundPheromones2 && foundPheromones1 >= foundPheromones3)
                   {
-                     toSteerForPher /= foundPheromones;
-                     ant.Steer(toSteerForPher, 0.5f);
+                     toSteerForPher1 /= foundPheromones1;
+                     ant.Steer(toSteerForPher1, 0.1f);
+                  }
+                  else
+                  if (foundPheromones2 != 0 && !didFindFood && foundPheromones2 >= foundPheromones1 && foundPheromones2 >= foundPheromones3)
+                  {
+                     toSteerForPher2 /= foundPheromones2;
+                     ant.Steer(toSteerForPher2, 0.1f);
+                  }
+                  else
+                  if (foundPheromones3 != 0 && !didFindFood && foundPheromones3 >= foundPheromones1 && foundPheromones3 >= foundPheromones2)
+                  {
+                     toSteerForPher3 /= foundPheromones3;
+                     ant.Steer(toSteerForPher3, 0.1f);
                   }
                }
             }
@@ -399,15 +440,16 @@ namespace AntColonyRaster
 
                         if (grid[x][y].isCarryingFood)
                         {
-                           grid[x][y].foodSaturation -= 0.05f;
+                           grid[x][y].foodSaturation -= antsHunger;
 
                            if (grid[x][y].foodSaturation <= 0)
                               grid[x][y].isCarryingFood = false;
 
                            ant.vel *= -1;
+                           ant.isCarryingPheromone = true;
                            ant.isCarryingFood = true;
                            ant.isLockedOnFood = false;
-                           ant.pheromoneDurationLeft = ant.pheromoneDuration;
+                           ant.pheromoneDurationLeft = Ant.pheromoneDuration;
                            didFindFood = true;
                         }
                         //grid[x][y].color = Color4.Yellow;

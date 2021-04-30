@@ -33,10 +33,17 @@ namespace AntColonyRaster
 
       protected override void OnLoad(EventArgs e)
       {
+         r = new Random();
          backgroundColor = new Color4(0.4f, 0.4f, 0.4f, 1f);
          GL.ClearColor(backgroundColor);
          colony = new Colony();
-         r = new Random();
+
+         //for (int i = 0; i < 500; i++)
+         //{
+         //   colony.ants.Add(new Ant(10, new Vector2(Width / 2, Height / 2),
+         //      Misc.VecFromAng(r.NextDouble() * 360f)));
+         //}
+
          rasterGrid = new RasterGrid(280, Width, Height, Color4.LightGray);
 
          base.OnLoad(e);
@@ -50,6 +57,8 @@ namespace AntColonyRaster
          Draw();
 
          timeSteps = (timeSteps + 1) % 1000;
+
+         Title = "Rasterized Ants: " + colony.ants.Count.ToString();
 
          Context.SwapBuffers();
          base.OnRenderFrame(e);
@@ -85,6 +94,7 @@ namespace AntColonyRaster
          // Updating ants
 
          colony.PerhormBehaviour(r, Width, Height);
+         colony.UpdatePheromones();
 
          // Rasterising data
          rasterGrid.ResetAnts();
@@ -116,7 +126,12 @@ namespace AntColonyRaster
          {
             case Key.Space:
             {
-               doSpawn = !doSpawn;
+               //doSpawn = !doSpawn;
+               for (int i = 0; i < 500; i++)
+               {
+                  colony.ants.Add(new Ant(10, new Vector2(Width / 2, Height / 2),
+                     Misc.VecFromAng(r.NextDouble() * 360f)));
+               }
                break;
             }
             case Key.Plus:
@@ -152,8 +167,7 @@ namespace AntColonyRaster
       {
          if (e.Mouse.IsButtonDown(MouseButton.Left))
          {
-            Vector2 clickCoords = new Vector2(e.X, e.Y);
-            rasterGrid.AddFood(clickCoords);
+            AddNewFood();
          }
 
          mouseX = e.X;
@@ -167,6 +181,31 @@ namespace AntColonyRaster
 
          base.OnMouseWheel(e);
       }
-   }
 
+      void AddNewFood()
+      {
+         float fwidth = 10;
+         int width = (int)(fwidth / rasterGrid.CellW);
+
+         int xCent = (int)(mouseX / rasterGrid.CellW);
+         int yCent = (int)(mouseY / rasterGrid.CellH);
+
+         if (xCent > width / 2 && xCent < rasterGrid.Resolution - width / 2 &&
+             yCent > width / 2 && yCent < rasterGrid.Resolution - width / 2)
+         {
+            for (int i = 0; i < width; i++)
+            {
+               int x = xCent - width / 2 + i;
+
+               for (int j = 0; j < width; j++)
+               {
+                  int y = yCent - width / 2 + j;
+
+                  rasterGrid.grid[x][y].isCarryingFood = true;
+                  rasterGrid.grid[x][y].foodSaturation = 1f;
+               }
+            }
+         }
+      }
+   }
 }
