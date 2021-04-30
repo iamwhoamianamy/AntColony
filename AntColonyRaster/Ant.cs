@@ -135,8 +135,8 @@ namespace AntColonyRaster
                isLockedOnHome = false;
                vel *= -1;
 
-               if (pheromoneDuration < maxPheromoneDuration)
-                  pheromoneDuration += 5;
+               //if (pheromoneDuration < maxPheromoneDuration)
+               //   pheromoneDuration += 5;
 
                pheromoneDurationLeft = pheromoneDuration;
             }

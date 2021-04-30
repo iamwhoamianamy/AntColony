@@ -19,6 +19,7 @@ namespace AntColonyRaster
 
       public bool isCarryingFood;
 
+      public float foodSaturation;
       public float homePherSat;
       public float foodPherSat;
 
@@ -40,15 +41,19 @@ namespace AntColonyRaster
 
          homePherSat = 0f;
          foodPherSat = 0f;
+         foodSaturation = 0f;
 
          this.pos = pos;
       }
 
       public void Draw()
       {
-         if(isCarryingFood)
-            color = Color4.Green;
+         if (isCarryingFood)
+         {
+            color.G = foodSaturation;
+         }
          else
+         {
             if (isCarryingAnt)
                color = Color4.White;
             else
@@ -64,6 +69,7 @@ namespace AntColonyRaster
                   color.B = foodSat;
                }
             }
+         }
 
          GL.Color4(color);
          GL.Begin(BeginMode.Points);

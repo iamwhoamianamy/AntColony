@@ -17,7 +17,6 @@ namespace AntColonyRaster
       private Color4 backgroundColor;
 
       private Colony colony;
-      private List<Point> food;
 
       bool doSpawn = false;
       int timeSteps = 0;
@@ -37,9 +36,8 @@ namespace AntColonyRaster
          backgroundColor = new Color4(0.4f, 0.4f, 0.4f, 1f);
          GL.ClearColor(backgroundColor);
          colony = new Colony();
-         food = new List<Point>();
          r = new Random();
-         rasterGrid = new RasterGrid(200, Width, Height, Color4.LightGray);
+         rasterGrid = new RasterGrid(280, Width, Height, Color4.LightGray);
 
          base.OnLoad(e);
       }
@@ -92,9 +90,9 @@ namespace AntColonyRaster
          rasterGrid.ResetAnts();
          rasterGrid.UpdatePheromones();
          rasterGrid.RasterPheromones(colony.ants);
-         rasterGrid.RasterAntsAndFood(colony.ants, food);
-         rasterGrid.PerformBehaviour(colony.ants, food);
-         rasterGrid.EatFood(colony.ants, food);
+         rasterGrid.RasterAnts(colony.ants);
+         rasterGrid.PerformBehaviour(colony.ants);
+         rasterGrid.EatFood(colony.ants);
       }
 
       protected override void OnResize(EventArgs e)
@@ -142,7 +140,7 @@ namespace AntColonyRaster
             case MouseButton.Left:
             {
                Vector2 clickCoords = new Vector2(e.X, e.Y);
-               food.Add(new Point(clickCoords));
+               rasterGrid.AddFood(clickCoords);
                break;
             }
          }
@@ -155,7 +153,7 @@ namespace AntColonyRaster
          if (e.Mouse.IsButtonDown(MouseButton.Left))
          {
             Vector2 clickCoords = new Vector2(e.X, e.Y);
-            food.Add(new Point(clickCoords));
+            rasterGrid.AddFood(clickCoords);
          }
 
          mouseX = e.X;
